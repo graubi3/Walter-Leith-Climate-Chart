@@ -1,0 +1,63 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import make_interp_spline
+
+# Define the data for the Sonora desert region
+# Paste in yout precipitation & temperature values, or you can link to a table or spreadsheet with the values
+data = {
+    "name": "Sonoran Desert Walter-Leith Climate Chart",
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "precip": [0.976013123, 0.75042077, 0.264064304, 0.124434217, 0.213361155, 1.780659028, 1.976409494, 1.159338135, 0.583127031, 0.566068271, 1.04550357, 0.96902738],
+    "temp": [53.81157342, 56.48804458, 61.05867468, 67.28354979, 74.24626739, 82.71163874, 87.2289668, 86.27375888, 82.18686176, 72.49323968, 61.33824488, 53.93109944]
+}
+
+# Create DataFrame
+df = pd.DataFrame(data, index=data["months"])
+
+# Create x-axis points for smoother lines
+x_smooth = np.linspace(0, len(df) - 1, 1000)
+
+# Apply cubic spline interpolation
+spl1 = make_interp_spline(np.arange(len(df)), df["precip"], k=5)
+spl2 = make_interp_spline(np.arange(len(df)), df["temp"], k=5)
+y_smooth1 = spl1(x_smooth)
+y_smooth2 = spl2(x_smooth)
+
+# Plotting
+fig, ax1 = plt.subplots()
+
+# Plot precipitation
+ax1.plot(x_smooth, y_smooth1, color='#899BB6', linestyle='dotted', linewidth=2.5, label='Precip')
+ax1.fill_between(x_smooth, y_smooth1, color='blue', alpha=0.2, label='Arid Period')  # Shade arid periods
+
+# Plot temperature
+ax2 = ax1.twinx()
+ax2.plot(x_smooth, y_smooth2, color='#a5d5a2', linewidth=2.5, label='Temp')
+ax2.fill_between(x_smooth, y_smooth2, color='orange', alpha=0.2, label='Humid Period')  # Shade humid periods
+
+# Set x-axis ticks and labels
+ax1.set_xticks(np.arange(len(df)))
+ax1.set_xticklabels(data["months"])
+
+# Set y-axis ticks and labels
+ax1.set_yticks(np.linspace(ax1.get_yticks()[0], ax1.get_yticks()[-1], len(ax2.get_yticks())))
+ax1.set_yticklabels([f'{label:.2f}' for label in ax1.get_yticks()])
+ax2.set_yticks(np.linspace(ax2.get_yticks()[0], ax2.get_yticks()[-1], len(ax1.get_yticks())))
+ax2.set_yticklabels([f'{label:.2f}' for label in ax2.get_yticks()])
+
+# Set y-axis labels
+ax1.set_ylabel('Monthly Avg. Precipitation')
+ax2.set_ylabel('Monthly Avg. Temperature (°F)')
+
+# Title and legend
+plt.title(data["name"])
+#fig.legend(loc='upper left')
+
+# Save the plot
+#save_path = add your file path here
+#plt.savefig(save_path, dpi=300, transparent=True)
+
+# Display the plot
+plt.tight_layout()
+plt.show()
